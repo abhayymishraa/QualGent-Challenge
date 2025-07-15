@@ -27,6 +27,17 @@ A CLI tool and backend service for queuing, grouping, and deploying AppWright te
 4. **Worker Pool**: Processes jobs in batches grouped by `app_version_id` and `target`
 5. **GitHub Actions**: CI/CD integration for automated test execution
 
+## Video Demonstrations
+
+### Server Logs
+[Watch server processing demonstration](./public/logs_server.mp4)
+
+### GitHub Actions Workflow - Failed Test
+[Watch failed workflow demonstration](./public/workflow_failed.mp4)
+
+### GitHub Actions Workflow - Passed Test
+[Watch successful workflow demonstration](./public/workflow_passsed.mp4)
+
 ## Quick Start
 
 ### Prerequisites

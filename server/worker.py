@@ -11,7 +11,7 @@ PRIORITY_QUEUES = [f"queue:p{i}" for i in range(10, 0, -1)]  #
 PROCESSING_QUEUE_PREFIX = "processing:"
 DELAYED_QUEUE = "delayed_queue"
 DEAD_LETTER_QUEUE = "dead_letter_queue"
-RETRY_DELAY_SECONDS = 60
+RETRY_DELAY_SECONDS = 5
 
 
 
