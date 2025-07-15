@@ -3,7 +3,7 @@ import axios from "axios";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-const API_URL = "https://qualgent-challenge.onrender.com";
+const API_URL = "https://qualgent-challenge-backend.onrender.com";
 
 yargs(hideBin(process.argv))
   .command(
