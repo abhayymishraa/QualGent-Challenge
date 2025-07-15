@@ -2,7 +2,7 @@
 
 A CLI tool and backend service for queuing, grouping, and deploying AppWright tests across local devices, emulators, and BrowserStack.
 
-## 🏗️ Architecture Overview
+# Architecture Overview
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -40,7 +40,7 @@ A CLI tool and backend service for queuing, grouping, and deploying AppWright te
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/abhayymishraa/QualGent-Challenge
    cd QualGent-Assignment
    ```
 
@@ -154,7 +154,7 @@ The system optimizes test execution by:
 - **Dead Letter Queue**: Jobs exceeding max retries are moved to DLQ
 - **Crash Recovery**: Orphaned jobs are automatically re-queued on worker restart
 
-## 🛠️ GitHub Actions Integration
+## GitHub Actions Integration
 
 The workflow automatically:
 1. Submits test jobs via the CLI
@@ -205,7 +205,7 @@ Simulating app install and setup (10s)...
 Batch finished with status: COMPLETED
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -253,4 +253,4 @@ Batch finished with status: COMPLETED
    https://qualgent-challenge-backend.onrender.com
 ```
    
-*Built with ❤️ for the QualGent Backend Coding Challenge*
+*Built with ❤️ by abhay for the QualGent Backend Coding Challenge*
