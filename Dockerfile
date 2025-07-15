@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir -r requirements.txt
     
 COPY . /app
     
-CMD ["python","worker.py","worker"]
+CMD ["python","worker.py","requeuer"]
