@@ -2,7 +2,7 @@ name: QualGent - CI Test Submission
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install CLI dependencies and link command
         working-directory: ./cli
@@ -40,12 +40,12 @@ jobs:
 
           # Parse the job_id from the JSON and save it for the next step
           job_id=$(echo "$job_output" | grep '"job_id"' | awk -F'"' '{print $4}')
-          
+
           if [ -z "$job_id" ]; then
             echo "::error::Could not parse job_id from the response."
             exit 1
           fi
-          
+
           echo "job_id=$job_id" >> "$GITHUB_OUTPUT"
 
       - name: Poll for Job Completion
@@ -53,13 +53,16 @@ jobs:
         run: |
           JOB_ID="${{ steps.submit.outputs.job_id }}"
           echo "Polling status for job: $JOB_ID"
-          
+
           # Loop for 3 minutes (12 tries * 15 seconds)
           for i in {1..12}; do
             status_output=$(qgjob status $JOB_ID || true)
             echo "$status_output"
-            status=$(echo "$status_output" | grep '"status"' | awk -F'"' '{print $4}')
+            status=$(echo "$status_output" | grep -m 1 '"status"' | awk -F'"' '{print $4}' | tr -d '[:space:]')
 
+            echo "Cleaned status is: '$status'"
+
+            # Now this comparison will work correctly
             if [[ "$status" == "completed" ]]; then
               echo "✅ Job completed successfully! Workflow PASSED."
               exit 0
@@ -68,7 +71,7 @@ jobs:
               exit 1
             fi
             
-            echo "Current status is '$status'. Waiting 15 seconds..."
+            echo "Waiting 15 seconds..."
             sleep 15
           done
 
