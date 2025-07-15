@@ -1,20 +1,24 @@
 {
-  "name": "cli",
+  "name": "qgjob",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "QualGent CLI",
+  "bin": {
+    "qgjob": "./dist/qgjob.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/qgjob.js",
+    "prepublishOnly": "npm run build"
+  },
   "dependencies": {
-    "@types/yargs": "^17.0.33",
     "axios": "^1.10.0",
     "yargs": "^18.0.0"
   },
   "devDependencies": {
-    "@types/node": "^24.0.13"
-  }
+    "@types/node": "^24.0.14",
+    "@types/yargs": "^17.0.32",
+    "typescript": "^5.8.3"
+  },
+  "license": "MIT"
 }

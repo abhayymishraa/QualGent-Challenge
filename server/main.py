@@ -1,49 +1,104 @@
-import uuid 
+import uuid
+import redis
+import json
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+from typing import Literal, Dict, Any
+import os
+from dotenv import load_dotenv
 
-from pydantic import BaseModel
-from fastapi import FastAPI
+load_dotenv()
 
 class JobPayload(BaseModel):
-    org_id: uuid.UUID
+    org_id: str
     app_version_id: str
     test_path: str
-    priority: int = 1
-    target: str = "emulator"
+    priority: int = Field(
+        default=5, ge=1, le=10, description="Priority (1=lowest, 10=highest)"
+    )
+    target: Literal["emulator", "device", "browserstack"]
+    max_retries: int = Field(default=3, ge=0, le=5)
 
-class Job(BaseModel):
+
+class JobSubmissionResponse(BaseModel):
     job_id: str
     status: str
-    details: JobPayload 
+    details: str
 
 
-fake_db = {}
+class JobStatusResponse(BaseModel):
+    job_id: str
+    status: str
+    details: Dict[str, Any]
+
 
 app = FastAPI()
+redis_client = redis.Redis(
+    host=os.getenv("REDIS_HOST"),
+    port=os.getenv("REDIS_PORT"),
+    decode_responses=True,
+    username=os.getenv("REDIS_USERNAME"),
+    password=os.getenv("REDIS_PASSWORD"),
+)
 
-@app.get("/", status_code=200)
+
+@app.get("/", summary="Health Check")
 def read_root():
     """Root endpoint to check if the server is running."""
     return {"message": "QualGent Job Orchestrator is running!"}
 
-@app.post("/jobs", status_code=201)
+
+@app.post(
+    "/jobs",
+    status_code=201,
+    response_model=JobSubmissionResponse,
+    summary="Submit a New Job",
+)
 def submit_job(job_payload: JobPayload):
-    """Recieves a job , gives it a unique ID, and stores it."""
-    job_id = str(uuid.uuid4())[:8] # generate a short id
+    """
+    Receives a job, generates a unique ID, stores its metadata,
+    and pushes it to the appropriate priority queue.
+    """
+    job_id = str(uuid.uuid4())
+    queue_name = f"queue:p{job_payload.priority}"
 
-    job_data = Job(job_id=job_id, status="queued", details=job_payload)
-    fake_db[job_id] = job_data
+    job_data = {
+        "job_id": job_id,
+        "status": "queued",
+        "payload": job_payload.model_dump_json(),
+        "queue": queue_name,
+        "retries_done": "0",
+        "max_retries": str(job_payload.max_retries),
+    }
 
-    print(f"Job submitted: {job_id} for {job_payload.app_version_id}")
-    return {"job_id": job_id, "status": job_data.status, "details": job_data.details}
+    # Use a pipeline for atomic execution
+    pipe = redis_client.pipeline()
+    pipe.hset(f"job:{job_id}", mapping=job_data)
+    pipe.lpush(queue_name, job_id)
+    pipe.execute()
 
-@app.get("/jobs/{job_id}", status_code=200)
+    print(f"Job Queued: {job_id} on queue {queue_name}")
+    return {
+        "job_id": job_id,
+        "status": "queued",
+        "details": f"Job enqueued to {queue_name}",
+    }
+
+
+@app.get("/jobs/{job_id}", response_model=JobStatusResponse, summary="Check Job Status")
 def get_job_status(job_id: str):
-    """Returns the status of a job by the ID."""
-    if job_id not in fake_db:
-        return {"error": "Job not found"}, 404
-    
-    job = fake_db[job_id]
-    print(f"Status check for {job.job_id}: {job.status}")
-    return  {"job_id": job.job_id, "status": job.status, "details": job.details}
+    """Returns the detailed status and data of a job by its ID."""
+    job_data = redis_client.hgetall(f"job:{job_id}")
 
+    if not job_data:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
 
+    # Parse nested JSON payload for cleaner output
+    if "payload" in job_data:
+        job_data["payload"] = json.loads(job_data["payload"])
+
+    return {
+        "job_id": job_id,
+        "status": job_data.get("status", "unknown"),
+        "details": job_data,
+    }

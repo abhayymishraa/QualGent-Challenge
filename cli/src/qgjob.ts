@@ -1,5 +1,5 @@
+#!/usr/bin/env node
 import axios from "axios";
-import { argv } from "process";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
@@ -25,6 +25,21 @@ yargs(hideBin(process.argv))
           describe: "Path to the test file",
           type: "string",
           demandOption: true,
+        })
+        .option("target", {
+          describe: "Target device type",
+          choices: ["emulator", "device", "browserstack"],
+          demandOption: true,
+        })
+        .option("priority", {
+          describe: "Job priority (1-10, 10 is highest)",
+          type: "number",
+          default: 5,
+        })
+        .option("max-retries", {
+          describe: "Maximum number of retries on failure",
+          type: "number",
+          default: 3,
         });
     },
     async (argv) => {
@@ -33,47 +48,36 @@ yargs(hideBin(process.argv))
           org_id: argv.orgId,
           app_version_id: argv.appVersionId,
           test_path: argv.test,
+          target: argv.target,
+          priority: argv.priority,
+          max_retries: argv.maxRetries,
         };
         const response = await axios.post(`${API_URL}/jobs`, payload);
-        console.log("Job submitted successfully");
-        console.log(
-          `Job ID: ${response.data.job_id}, Job Details: ${JSON.stringify(
-            response.data
-          )}`
-        );
+        console.log("Job submitted successfully!");
+        console.log(JSON.stringify(response.data, null, 2));
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          console.error("Error submitting job:", err.message);
-        } else {
-          console.error("An unknown error occurred:", err);
-        }
+        console.error("Error submitting job:");
+        process.exitCode = 1;
       }
     }
   )
-
   .command(
-    "status",
+    "status <job-id>",
     "Check the status of a job",
     (yargs) => {
-      return yargs.option("job-id", {
+      return yargs.positional("job-id", {
         describe: "The ID of the job to check",
         type: "string",
-        demandOption: true,
       });
     },
     async (argv) => {
       try {
         const response = await axios.get(`${API_URL}/jobs/${argv.jobId}`);
-        console.log(
-          `Status for job ${response.data.job_id}: ${response.data.status}`
-        );
-        console.log(`Job Status: ${JSON.stringify(response.data)}`);
+        console.log(`🔎 Status for job ${argv.jobId}:`);
+        console.log(JSON.stringify(response.data, null, 2));
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          console.error("Error fetching job status:", err.message);
-        } else {
-          console.error("An unknown error occurred:", err);
-        }
+        console.error("Error fetching job status:");
+        process.exitCode = 1;
       }
     }
   )

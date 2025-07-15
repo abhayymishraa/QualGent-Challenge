@@ -1,0 +1,6 @@
+fastapi
+redis
+pydantic
+python-dotenv
+uvicorn[standard] 
+supervisor
