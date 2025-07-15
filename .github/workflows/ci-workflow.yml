@@ -21,6 +21,7 @@ jobs:
         working-directory: ./cli
         run: |
           npm install
+          npm run build
           npm link
 
       - name: Submit Test Job
