@@ -68,7 +68,16 @@ A CLI tool and backend service for queuing, grouping, and deploying AppWright te
    REDIS_PASSWORD=your-redis-password
    ```
 
-3. **Install CLI dependencies**
+3. **Configure the URL**
+
+   ```bash
+   cd cli/qgjob.ts
+   # put the backend url
+   const API_URL = "http://localhost:8000" 
+   ```
+   
+
+4. **Install CLI dependencies**
    ```bash
    cd cli
    npm install
@@ -76,7 +85,7 @@ A CLI tool and backend service for queuing, grouping, and deploying AppWright te
    npm link 
    ```
 
-4. **Install server dependencies**
+5. **Install server dependencies**
    ```bash
    cd server
    python -m venv venv
